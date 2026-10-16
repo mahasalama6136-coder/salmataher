@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لعبة المهن في المجتمع</title>
+<style>
+:root{--blue:#1268b3;--deep:#124578;--sky:#e8f6ff;--yellow:#ffd34f;--ink:#18365c;--green:#2c9c75}
+*{box-sizing:border-box}
+body{margin:0;font-family:Tahoma,Arial,sans-serif;background:linear-gradient(180deg,#e9f7ff 0%,#fff 55%,#eaf7ff 100%);color:var(--ink);min-height:100vh}
+header{text-align:center;padding:24px 16px 12px;position:relative}
+.flag{position:absolute;left:22px;top:22px;font-size:42px;filter:drop-shadow(0 3px 2px #0002)}
+h1{display:inline-block;margin:0;background:var(--deep);color:white;padding:15px 34px;border-radius:22px;border:3px dashed #c8e8ff;box-shadow:0 7px 0 #d4ebfa;font-size:clamp(1.5rem,4vw,2.5rem)}
+.subtitle{color:#bd8500;font-weight:bold;font-size:clamp(1rem,2.5vw,1.35rem);margin:17px 0 5px}
+.instructions{max-width:760px;margin:12px auto 20px;background:#d9f0ff;border:2px solid #b3e0fa;border-radius:18px;padding:12px 18px;font-size:1rem;line-height:1.8}
+main{max-width:1080px;margin:auto;padding:0 18px 30px}
+.progressrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 auto 14px;max-width:900px}
+.progress{font-weight:bold;background:white;border:1px solid #c7e5f8;padding:9px 15px;border-radius:30px}
+button{font-family:inherit;cursor:pointer}
+.reset{border:0;background:var(--yellow);color:#24446b;font-weight:bold;padding:10px 18px;border-radius:25px;box-shadow:0 3px 0 #e2b52d}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;max-width:900px;margin:auto}
+.card{height:220px;perspective:1000px;border:0;background:transparent;padding:0;min-width:0}
+.inner{position:relative;width:100%;height:100%;transition:transform .55s;transform-style:preserve-3d}
+.card.open .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:22px;border:4px solid #bce3ff;box-shadow:0 5px 0 #d9efff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;text-align:center;overflow:hidden}
+.front{background:linear-gradient(145deg,#2186d1,#07579d);color:white}
+.front:before{content:"";position:absolute;inset:9px;border:2px dashed #ffffff70;border-radius:15px}
+.question{font-size:5rem;line-height:1;font-weight:bold;text-shadow:0 4px 0 #034d8a;z-index:1}
+.tap{font-size:.95rem;margin-top:10px;z-index:1;color:#eaf7ff}
+.back{transform:rotateY(180deg);background:white;border-color:#ffda65}
+.emoji{font-size:4rem;line-height:1.1;margin-bottom:8px}
+.job{font-size:1.35rem;font-weight:bold;color:#07579d}
+.place{font-size:1rem;margin-top:8px;line-height:1.5;color:#3b5270}
+.badge{font-size:.78rem;background:#fff1bd;color:#735400;padding:4px 10px;border-radius:20px;margin-top:9px}
+footer{text-align:center;margin:20px auto 0;font-weight:bold;color:#315a83;background:#fff0b5;border:2px solid #ffdb62;border-radius:22px;padding:12px 20px;max-width:520px}
+@media(max-width:650px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.card{height:190px}.question{font-size:4rem}.emoji{font-size:3.2rem}.job{font-size:1.15rem}.flag{position:static;font-size:30px;margin-bottom:8px}header{padding-top:15px}}
+@media(max-width:380px){.card{height:170px}.face{padding:8px}.place{font-size:.9rem}}
+@media(prefers-reduced-motion:reduce){.inner{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="flag" aria-label="علم مصر">🇪🇬</div>
+  <h1>المهن في المجتمع</h1>
+  <div class="subtitle">🎯 اكتشف الصور المخفية!</div>
+  <div class="instructions">اضغط على أي مربع لاكتشاف الصورة المخفية، ثم تعرّف على <b>المهنة</b> والمكان الذي يعمل فيه صاحبها. جرّب اكتشاف الصور الست كلها!</div>
+</header>
+<main>
+  <div class="progressrow">
+    <div class="progress" id="progress" aria-live="polite">الصور المكتشفة: ٠ من ٦</div>
+    <button class="reset" id="reset" type="button">↻ ابدأ من جديد</button>
+  </div>
+  <section class="grid" id="grid" aria-label="الصور المخفية للمهن"></section>
+  <footer>🌟 بالتعلّم نكتشف عالم المهن 🌟</footer>
+</main>
+<script>
+const jobs = [
+ {emoji:"👩‍⚕️",job:"الطبيبة",place:"تعمل في المستشفى أو العيادة",tag:"مهنة الرعاية الصحية"},
+ {emoji:"👨‍🏫",job:"المعلّم",place:"يعمل في المدرسة",tag:"مهنة التعليم"},
+ {emoji:"👨‍🚒",job:"رجل الإطفاء",place:"يعمل في محطة الإطفاء ويتدخل عند الحرائق",tag:"مهنة حماية المجتمع"},
+ {emoji:"👩‍🍳",job:"الطاهية",place:"تعمل في المطعم أو الفندق",tag:"مهنة إعداد الطعام"},
+ {emoji:"👷",job:"المهندس",place:"يعمل في موقع البناء أو المكتب الهندسي",tag:"مهنة البناء والتصميم"},
+ {emoji:"👮",job:"ضابط الشرطة",place:"يعمل في قسم الشرطة ويحافظ على الأمن",tag:"مهنة حفظ الأمن"}
+];
+const digits = n => String(n).replace(/\d/g,d=>"٠١٢٣٤٥٦٧٨٩"[d]);
+const grid=document.getElementById("grid");
+const progress=document.getElementById("progress");
+let opened=new Set();
+function render(){
+ grid.innerHTML="";
+ jobs.forEach((item,i)=>{
+  const card=document.createElement("button");
+  card.type="button"; card.className="card"; card.setAttribute("aria-label",`صورة مخفية رقم ${digits(i+1)}`);
+  card.innerHTML=`<span class="inner"><span class="face front"><span class="question">؟</span><span class="tap">اضغط لاكتشاف الصورة</span></span><span class="face back"><span class="emoji" aria-hidden="true">${item.emoji}</span><span class="job">${item.job}</span><span class="place">${item.place}</span><span class="badge">${item.tag}</span></span></span>`;
+  card.addEventListener("click",()=>{
+   if(card.classList.contains("open")) return;
+   card.classList.add("open"); opened.add(i);
+   card.setAttribute("aria-label",`${item.job}، ${item.place}`);
+   progress.textContent=`الصور المكتشفة: ${digits(opened.size)} من ٦`;
+   if(opened.size===jobs.length) progress.textContent="🎉 أحسنت! اكتشفت الصور الست كلها!";
+  });
+  grid.appendChild(card);
+ });
+ opened.clear(); progress.textContent="الصور المكتشفة: ٠ من ٦";
+}
+document.getElementById("reset").addEventListener("click",render);
+render();
+</script>
+</body>
+</html>
